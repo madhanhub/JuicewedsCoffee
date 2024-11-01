@@ -12,6 +12,7 @@ app.use(express.urlencoded({extended:true}))
 const admin=require('./Schema/Admin')
 const user=require('./Schema/User')
 const product=require('./Schema/Product')
+const order=require('./Schema/Order')
 
 app.listen(8080,()=>{
     console.log('server run');
@@ -141,3 +142,19 @@ app.delete('/Product/delete',async(req,res)=>{
         res.status(500).json({message:'failed'})
     }
 })
+
+app.post('/Order',async(req,res)=>{
+    try{
+        const{p_id,u_id,juice_name,juice_price,juice_quantity,coffee_name,coffee_price,coffee_quantity,order_date}=req.body
+        const juice_amount=juice_price * juice_quantity
+        const coffee_amount=coffee_price * coffee_quantity
+        const order_amount=juice_amount + coffee_amount
+        const New_order=new order({
+            p_id,u_id,juice_name,juice_price,coffee_name,coffee_price,order_amount,order_date,juice_amount,coffee_amount
+        }).save()
+        res.status(200).json({message:'success',data:New_order})
+    }catch(error){
+        res.status(500).json({message:'failed'})
+    }
+})
+
