@@ -150,7 +150,8 @@ app.post('/Order',async(req,res)=>{
         const coffee_amount=coffee_price * coffee_quantity
         const order_amount=juice_amount + coffee_amount
         const New_order=new order({
-            p_id,u_id,juice_name,juice_price,coffee_name,coffee_price,order_amount,order_date,juice_amount,coffee_amount
+            p_id,u_id,juice_name,juice_price,coffee_name,coffee_price,order_amount,order_date,juice_amount,coffee_amount,
+            juice_quantity,coffee_quantity
         }).save()
         res.status(200).json({message:'success',data:New_order})
     }catch(error){
