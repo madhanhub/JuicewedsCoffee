@@ -3,6 +3,8 @@ const app=express()
 const mongoose=require('mongoose')
 const morgan=require('morgan')
 const bodyparser=require('body-parser')
+require('dotenv').config()
+const jsonwebtoken=require('jsonwebtoken')
 
 app.use(express.json())
 app.use(morgan('dev'))
@@ -13,6 +15,9 @@ const admin=require('./Schema/Admin')
 const user=require('./Schema/User')
 const product=require('./Schema/Product')
 const order=require('./Schema/Order')
+
+const cors=require('./Function/cors')
+const authorization=require('./Function/auth')
 
 app.listen(8080,()=>{
     console.log('server run');
@@ -93,6 +98,17 @@ app.post('/login',async(req,res)=>{
             return res.status(400).json({message:'Invalid '})
         }
         if(login){
+            {
+                let token=await jsonwebtoken.sign({id:login.id,user_name:login.user_name,user_mail:login.user_mail,user_phone:login.user_phone},process.env.SECRET)
+                res.setHeader('token',token)
+                res.setHeader('id',login.id)
+                res.setHeader('user_name',login.user_name)
+                res.setHeader('user_mail',login.user_mail)
+                res.setHeader('user_phone',login.user_phone)
+                res.status(200).json({message:'admin login',data:token})
+            }
+        }
+        if(login){
             res.status(200).json({message:'Login',data:login})
         }
     }catch(error){
@@ -158,4 +174,30 @@ app.post('/Order',async(req,res)=>{
         res.status(500).json({message:'failed'})
     }
 })
+
+app.post('/order/update',async(req,res)=>{
+    try{
+        const{_id,juice_name,juice_price,juice_quantity,coffee_name,coffee_price,coffee_quantity,order_date}=req.body
+        const juice_amount=juice_price * juice_quantity
+        const coffee_amount=coffee_price * coffee_quantity
+        const order_amount=juice_amount + coffee_amount
+        const O_update=await order.findOneAndUpdate({_id},{
+            juice_name,juice_price,coffee_name,coffee_price,order_amount,order_date,juice_amount,coffee_amount,
+            juice_quantity,coffee_quantity
+        })
+        res.status(200).json({message:'success',data:O_update}) 
+    }catch(error){
+        res.status(500).json({message:'failed'})
+    }
+})
+
+app.get('/order/view',async(req,res)=>{
+    try{
+        const order_view=await order.find({}).populate('u_id').populate('p_id')
+        res.status(200).json({message:'order',data:order_view})
+    }catch(error){
+        res.status(500).json({message:'failed'})
+    }
+})
+
 
